@@ -1,0 +1,19 @@
+{
+  "name": "firstfile",
+  "version": "1.0.0",
+  "description": "A Basic App to Deploy",
+  "keywords": [
+    "node"
+  ],
+  "license": "ISC",
+  "author": "salome carval",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}

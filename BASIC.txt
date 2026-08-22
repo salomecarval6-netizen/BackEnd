@@ -1,0 +1,169 @@
+
+
+Server: Software that serves
+
+
+
+Node.js is just the runtime of JS
+
+
+
+2 MAJOR COMPONENTS:
+
+
+
+1.Programming Language: Java(SpringBoot/Spring), JS(lib: mongoose,express), PHP(laravel), golang, C++(cro)
+
+&#x20;(in each of this use of either a framework / library)
+
+A framework is a pre-built structure or blueprint that provides a foundation for developing software applications. Instead of building everything from scratch, developers use a framework to handle repetitive tasks, enforce code organization, and accelerate development.
+
+Angular, Ruby on Rails, Django
+
+
+
+A library is a reusable collection of pre-written code snippets, functions, or methods that you can import into your project to solve specific, isolated problems. Instead of writing complex logic from scratch, you call the library to do the heavy lifting for you.
+
+Lodash, Axios, jQuery
+
+
+
+2.Database: Mongo, MySql, Postgres, Sqlite
+
+(ORM/ODM)
+
+
+
+&#x09;  API
+
+Browser <-----> Backend <------> DB \[Always present in OTHER CONTINENT]
+
+
+
+Call to backend from FrontEnd to speicific routes
+
+
+
+Backend:
+
+Just consists of functions which interact with DB and accordingly provide a response(in API format) to frontend
+
+
+
+API is just returned value in JSON format(usually), T/F, number
+
+
+
+
+
+JS BASED BACKEND:
+
+
+
+To deal with DATA, FILE, API(third party)
+
+
+
+A JS runtime: Node.js, Deno, Bun
+
+
+
+&#x20;(
+
+
+
+Libraries:
+
+Express(Routing), Mongoose(DataBase)
+
+
+
+File Structure:
+
+
+
+src directory : contains Package.json , .env, Readme, git, lint, prettier
+
+
+
+2
+
+**General Directory Structure of Backend:**
+
+
+
+**FILES:**
+
+index file: DB connects (entry point of applications)
+
+APP: config, cookie,
+
+constants: enums, DB-name
+
+
+
+**Directory Structure:**
+
+DB
+
+Models: Schema/structure/sample of Data to be stored in DB (each DB/library has its own/diff structure)
+
+Controllers: functionality / methods to process data
+
+Routers: /login, /signup only accept this
+
+Middlewares: 
+
+Utils: utility (when at multiple place to be placed same thing)
+
+More(depends)…..
+
+
+
+&#x09;   REQUEST(get)
+
+Computer --------------->     server (code)
+
+&#x09;  Express(package)	Listen
+
+&#x09; <----------------    /: home route
+
+&#x09;    RESPONSE
+
+
+
+&#x09;
+
+
+
+START:
+
+
+1. npm init
+
+This utility will walk you through creating a package.json file.
+
+It only covers the most common items, and tries to guess sensible defaults.
+
+
+
+
+
+2."scripts": {
+
+&#x20;   "start": "node index.js"
+
+&#x20; }
+
+
+
+
+
+3.npm run start
+
+
+
+
+npm is the registry for all JavaScript packages, not just React libraries.
+
+Every tool, framework, and library written in JavaScript or TypeScript is published to npm so developers can easily install them.
