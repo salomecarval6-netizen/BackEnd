@@ -255,4 +255,10 @@ Thus code now on Git
 7. Use any app to deploy
 
 
-JSON FORMATTER TO SEE THE ACTUAL RESPONSE OBJECT
+JSON FORMATTER TO SEE THE ACTUAL RESPONSE OBJECT.
+
+To design frontend:
+These are various ToolChains/Bundlers: helps in bundling of all js files into what browser can understand
+1.VITE
+2.CREATE REACT APP
+3.PERCEL

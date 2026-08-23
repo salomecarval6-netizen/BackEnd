@@ -1,3 +1,25 @@
+Deploying a website means transferring your code from your local computer to a public web server so that anyone on the internet can access it via a URL. It is the final bridge between a project you are building privately and a live digital product.
+The Process: It involves compiling code, running automated tests, and pushing the files to a host like Render.
+EG. Render 
+    Digital Ocean
+    Deploy
+
+
+Production is the actual environment where real users interact with your application
+The Environment: This is the live, final version of your application (e.g., the active Discord bot or live website).
+
+What Render Does?
+Hosts backend code: Runs Node.js, Python, and other programming languages.
+Connects to GitHub: Deploys your code automatically when you push updates.
+Runs bots 24/7: Keeps your programs active in the cloud
+
+
+Discord is a free voice, video, and text communication platform used by tens of millions of people to talk and hang out in private or public communities. 
+Discord is the actual chat app where users build servers, join voice channels, and send messages.
+
+
+//to store all sensitive / configuration values shouldn't be hard-coded. Thus store them in .env file and access it inside node.js using process.env.VariableName.
+
 dot env
 
 1. npm install dotenv
@@ -10,3 +32,25 @@ dot env
     console.log(`Example app listening on port ${port}`);
    });
 
+app.listen(...): This is an Express method that tells your server to start up and wait for network traffic at a specific address (port).
+
+process.env.PORT: This reads the port number from your computer's environment variables.Production hosting platforms (like Render, Heroku, or AWS) use this variable to dynamically assign an open port to your app.
+
+() => { ... }This is a callback function.It runs automatically exactly once, right after the server successfully starts up.
+
+console.log(...)This prints a confirmation message to your terminal so you know the server is running.
+
+
+5. Make a .gitignore file so as to not push that file on gitHub.
+.gitignore: tells git which files/folders it shouldnt track
+
+6. git init
+   git add .
+   git commit -m "first commit"
+   git branch -M main
+   git remote add origin https://github.com/salomecarval6-netizen/BackEnd.git
+   git push -u origin main
+
+Thus code now on Git
+
+7. Use any app to deploy

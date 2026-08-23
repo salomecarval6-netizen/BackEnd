@@ -1,0 +1,30 @@
+BACKEND:
+Your backend must actively permit requests originating from your frontend's port. Double-check that your main backend file contains the cors middleware
+npm install cors
+const cors = require('cors');
+app.use(cors()); // Allows frontend to safely read API data
+
+
+
+FRONTEND:
+Target URL: Ensure your React application knows exactly where to find the backend API. Inside your React environment configuration (.env), set your target destination matching your backend server port:
+REACT_APP_BACKEND_URL=http://localhost:5000
+
+
+
+Step 1: Install concurrentlyOpen a terminal in the root directory of your project (the parent folder that contains both your frontend and backend folders) and run:
+npm install concurrently --save-dev
+
+
+
+Step 2: Configure your Root package.jsonIf you do not have a package.json file in your root directory, create one by running npm init -y.Open the root package.json file and modify the "scripts" section to look like this (ensure the folder names match your exact frontend and backend folder names):
+"scripts": {
+  "backend": "cd backend && npm run dev",
+  "frontend": "cd frontend && npm start",
+  "both": "concurrently \"npm run start\" \"nodemon backend/index.js\""
+}
+
+
+
+tep 3: Run the Single CommandNow, whenever you open VS Code, you only need to open one terminal and type:
+npm run both

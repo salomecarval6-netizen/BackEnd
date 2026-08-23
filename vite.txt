@@ -1,0 +1,27 @@
+IN FRONTEND FOLDER:
+
+ npm create vite@latest .
+
+ npm I
+
+ npm run dev
+
+
+
+TO MAKE API REQUEST:
+
+fetch: API is built directly into modern browsers, meaning you do not need to install any external packages., 
+
+axios: inside a useEffect hook, Axios is a popular third-party library. It automatically transforms responses into JSON, offers built-in timeout protections, and simplifies complex requests.
+To install: npm install axios
+import axios from 'axios';
+
+react query: by leveraging modern data-fetching libraries like TanStack Query.
+To install: npm install @tanstack/react-query
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+
+
+
+
+

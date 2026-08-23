@@ -1,0 +1,20 @@
+Deploying a website means transferring your code from your local computer to a public web server so that anyone on the internet can access it via a URL. It is the final bridge between a project you are building privately and a live digital product.
+The Process: It involves compiling code, running automated tests, and pushing the files to a host like Render.
+EG. Render 
+    Digital Ocean
+    Deploy
+
+
+Production is the actual environment where real users interact with your application
+The Environment: This is the live, final version of your application (e.g., the active Discord bot or live website).
+
+What Render Does?
+Hosts backend code: Runs Node.js, Python, and other programming languages.
+Connects to GitHub: Deploys your code automatically when you push updates.
+Runs bots 24/7: Keeps your programs active in the cloud
+
+
+Discord is a free voice, video, and text communication platform used by tens of millions of people to talk and hang out in private or public communities. 
+Discord is the actual chat app where users build servers, join voice channels, and send messages.
+
+

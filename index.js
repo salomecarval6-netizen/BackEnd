@@ -1,5 +1,6 @@
 require ('dotenv').config()
 
+
 const express = require('express');
 const app = express();
 // 1. Define the port (use the environment variable, or default to 3000 for local testing)
@@ -15,6 +16,7 @@ app.get('/login',(req,res)=>{
 
 app.get('/html',(req,res)=>{
   res.send('<h1>Returning HTML. Everytime start server</h1>');
+  //res.json is also a way to do
 })
 
 app.listen(process.env.PORT, () => {
