@@ -1,0 +1,22 @@
+Create .gitignore file: keeps all sensitive files to be avoided to push on git
+
+Theres .gitignore generator website which gives all the files/code to be hidden its copied inside out .gitignore file.
+
+Make a public folder inside which make .gitkeep file.
+A .gitkeep file is a placeholder file used by developers to force Git to track and maintain an otherwise empty directory in a repository.
+
+The Problem It Solves:
+By design, Git only tracks files (and the directory paths leading to those files); it does not track completely empty directories. 
+If you create an empty folder in your project and try to commit it, Git will completely ignore it, and it won't be pushed to platforms like GitHub.
+Adding a .gitkeep file makes the folder technically "not empty," which tricks Git into tracking the directory
+
+.env file: These variables are taken from system and not from file so as to keep them secure during PRODUCTION.
+This file is also not pushed on GIT
+
+
+src folder:
+
+IN TERMINAL:
+touch app.js
+touch constant.js
+touch index.js
