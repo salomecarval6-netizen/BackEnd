@@ -19,3 +19,5 @@ A clean utility function that eliminates the need to manually write repetitive t
 logger.js: Custom terminal log formatters.
 dateFormatter.js: Functions to clean up timestamps.
 validators.js: Regular expressions to check if an email format or password strength is valid.
+
+When it comes to uploads we make it inside utils since every url endpoint doesnt require uploads so it is designed as a separate component. Also so that the same upload can be reused inside photo,video,file upload

@@ -1,3 +1,6 @@
+Middleware: KOI KAM KARNE SEH PHEHELE MUJSEH MILKE JANA
+
+
 In Express, a middleware is a function that sits between an incoming request and your final route handler. It has full access to the request object (req), the response object (res), and the next middleware function in the application’s request-response cycle.
 
 The Middleware Core Signature:
@@ -45,3 +48,31 @@ Unlike global middleware (which run on every single button click or page visit),
 
 4. Error-Handling Middleware
 These are unique safety-net catchers defined at the very bottom of your file structure. Express natively recognizes them because they accept four arguments instead of three: (err, req, res, next).
+
+
+
+//If it were a utility: Your route handler would trigger immediately, but req.body and req.file would be undefined because the file data hasn't finished traveling over the network yet.
+//As middleware: Multer intercepts the incoming raw HTTP request stream before your route handler runs. It sits in the middle, catches the incoming data packets, parses them, compiles the file, and holds up the request until the upload is completely finished.
+
+
+/*The Utility Approach (Why it fails)
+// Express runs this instantly before the file actually finishes downloading
+app.post('/upload', async (req, res) => {
+  // req.body is empty here because the stream hasn't been parsed yet!
+  const file = req.body.avatar; 
+  
+  // This utility function would receive undefined or a broken stream
+  await fileUtility.save(file); 
+  res.send("Uploaded");
+});
+
+
+The Middleware Approach (Why it works)
+// Multer intercepts, downloads, and processes the file completely FIRST
+app.post('/upload', multer.single('avatar'), (req, res) => {
+  // Safe! Multer has already fully populated req.file and req.body
+  console.log(req.file); 
+  res.send("Uploaded successfully");
+});
+
+*/

@@ -1,3 +1,5 @@
+STUDY : MONGOOSE-MIDDLEWARE(HOOKS) DOCUMENTATION
+
 Serves as the Data Layer for your backend application. It contains your Mongoose Schemas, which act as the strict architectural blueprints for your MongoDB database collections. Because MongoDB is a schema-less database by nature (meaning it allows saving any random data shape),
 Mongoose models are used to enforce structured data rules, validation constraints, and strict data types right at the application level.
 
@@ -10,6 +12,32 @@ Every file inside the models folder follows a strict 3-step coding pattern:
 1. Import Mongoose: Bring in the required modules.
 2. Define the Schema: Design the structure, validation constraints, and default values.
 3. Compile and Export: Convert the schema rules into an actionable model object.
+
+HOOKS USED: (study from mongoose docs: middleware)
+Middleware: This term represents the architectural pattern. Just like Express middleware executes functions between receiving a network request and sending a response, Mongoose middleware executes functions between your application code and the MongoDB database.
+Hooks: This term represents how they function conceptually. They allow you to "hook into" specific lifecycle events of a document or query (such as validate, save, remove, or find) to inject your custom logic.
+
+Structural Classification:
+Mongoose splits this middleware/hook architecture into four distinct execution levels:
+1. Document Middleware: Operates on a single document instance. The this keyword refers to the document itself. Common targets include init, validate, save, and remove.
+2. Query Middleware: Operates on a query object before it hits the database. The this keyword refers to the query builder. Common targets include find, findOne, updateOne, and count.
+3. Aggregate Middleware: Operates on aggregation streams. Executes when you call .aggregate(). The this keyword refers to the Aggregate object
+4. Model Middleware: Operates on the higher-level Model constructor. A common target is insertMany.
+
+Sequence of ExecutionEvery hook/middleware category is divided into two operational phases:
+1. Pre-middleware (pre): Runs before the target action. It is primarily used to clean, validate, format data, or block actions.
+2. Post-middleware (post): Runs after the target action has successfully completed. It is primarily used to log changes, emit events, or send alerts.
+
+
+// Syntax: schema.pre('eventName', function)
+eventName: validate,save,updateOne,deleteOne
+
+Never use arrow functions (() => {}) when writing Mongoose hooks. Arrow functions lexically bind this, which completely destroys Mongoose's ability to inject the document or query object into your hook. Always use standard function() syntax.
+
+
+// Call next() to hand control over to the next middleware or save operation
+  next();
+
 
 A.When your database grows to hold thousands of entries (like products, tweets, or videos), sending all that data to the frontend at once will cause your app to freeze.
 This plugin automatically cuts your database responses into structured chunks (e.g., 10 items at a time) and calculates metadata like the total number of pages and whether a next page exists
@@ -27,7 +55,7 @@ import bcrypt from "bcryptjs";
 
 
 
-C. JWT : JSON Web Token. It is a compact, URL-safe standard (RFC 7519) used to securely transfer information between a frontend application and a backend server as a JSON object.In modern web development, JWT is most commonly used for user authentication and authorization. Think of it like a digital, unforgeable passport that your server issues to a user once they log in successfully.
+C. JWT : JSON Web Token is a bearer token(). It is a compact, URL-safe standard (RFC 7519) used to securely transfer information between a frontend application and a backend server as a JSON object.In modern web development, JWT is most commonly used for user authentication and authorization. Think of it like a digital, unforgeable passport that your server issues to a user once they log in successfully.
 
 visit jwt.io to see tokens.
 

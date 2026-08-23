@@ -76,17 +76,18 @@ userSchema.pre("save", async function(next) {
 })
 
 
-userSchema.methods.isPasswordCorrect= async function
-(password){
+//Arrow functions do not have their own this context. By using a standard function, the this keyword correctly points to the current user document loaded from your MongoDB collection. This is what allows you to read the encrypted password using this.password.
+userSchema.methods.isPasswordCorrect= async function(password){
 // Compare the input password with the hash pulled from your database bcrypt.compare(loginPassword, hashedPassword); 
      return await bcrypt.compare(password, this.password);
-}
+};
 
 
-
+//Access Token: Short-lived (e.g., 15 minutes). Used to access data.
+//The value is returned directly back to the Controller function that originally called your .isPasswordCorrect() method.
 userSchema.methods.generateAccessToken= function (){
   return jwt.sign(
-        {//payload
+        {//payload object:This object contains the user information you want to embed directly inside the token.
           _id: this._id,
           email: this.email,
           username: this.username,
@@ -101,6 +102,7 @@ userSchema.methods.generateAccessToken= function (){
       )
 }
 
+//Refresh Token: Long-lived (e.g., 10 days). Stored in your database and used only to request a brand-new Access Token when the short-lived one expires.
 userSchema.methods.generateRefreshToken= function (){
   return jwt.sign(
         {//payload

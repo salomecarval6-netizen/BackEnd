@@ -1,0 +1,21 @@
+clodinary website:
+
+https://cloudinary.com/documentation/node_integration#install : Read study this documentation
+
+
+1. express fileupload  
+2. multer
+
+
+
+npm install cloudinary
+
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({ 
+  cloud_name: 'my_cloud_name', 
+  api_key: 'my_key', 
+  api_secret: 'my_secret'
+});
+
+npm install multer
