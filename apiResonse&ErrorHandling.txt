@@ -1,0 +1,11 @@
+Express (or Express.js) is a minimalist, fast, and highly flexible web application framework for Node.js.
+
+Node.js allows you to run JavaScript code on your computer, Express gives you the structured tools needed to easily transform that code into a functional backend web server.
+
+If you try to build a server using only built-in Node.js features, you have to write dozens of lines of complex code just to read an incoming request or send a basic response. Express simplifies this by wrapping that complex code into easy-to-use methods.
+
+
+
+
+read:
+nodejs api error

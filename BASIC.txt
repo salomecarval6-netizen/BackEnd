@@ -161,7 +161,15 @@ Make index.js file in backend folder
 
 3.npm run start
 
+[ 
 
+Match the script to the command:
+
+Based on what you find inside that object, choose your terminal command:
+	If you see "dev": Run npm run dev (This is highly recommended because it uses nodemon to automatically 	restart your server every time you hit save).
+
+	If you see "start": Run npm start or npm run start (This runs the file once using basic Node.js).
+]
 
 
 npm is the registry for all JavaScript packages, not just React libraries.

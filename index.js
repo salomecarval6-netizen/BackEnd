@@ -1,7 +1,11 @@
-require ('dotenv').config()
+
+import dotenv from "dotenv"; //  Modern ES Module syntax
+dotenv.config();
 
 
-const express = require('express');
+
+//const express = require('express');//old syntax
+import express from "express"; // Modern syntax
 const app = express();
 // 1. Define the port (use the environment variable, or default to 3000 for local testing)
 const PORT = process.env.PORT || 3000;

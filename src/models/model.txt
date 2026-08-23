@@ -1,0 +1,12 @@
+Serves as the Data Layer for your backend application. It contains your Mongoose Schemas, which act as the strict architectural blueprints for your MongoDB database collections. Because MongoDB is a schema-less database by nature (meaning it allows saving any random data shape),
+Mongoose models are used to enforce structured data rules, validation constraints, and strict data types right at the application level.
+
+Every individual data entity in your application gets its own dedicated model file.
+
+The Anatomy of a Mongoose Model File:
+
+Every file inside the models folder follows a strict 3-step coding pattern:
+
+1. Import Mongoose: Bring in the required modules.
+2. Define the Schema: Design the structure, validation constraints, and default values.
+3. Compile and Export: Convert the schema rules into an actionable model object.

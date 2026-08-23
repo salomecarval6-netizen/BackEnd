@@ -1,0 +1,21 @@
+ The utils (Utilities) directory is a dedicated folder used to store reusable, independent helper functions, classes, or configuration blocks that are used across multiple files in your application.
+
+Instead of writing the exact same formatting, validation, or error-handling code over and over again inside different controllers, you write it once inside utils and import it wherever you need it.
+
+
+1. Custom API Error Handler (ApiError.js)
+Instead of writing messy, inconsistent try...catch responses in every controller, you create a standardized class that formats all system errors uniformly.
+
+
+2. Standardized API Response Formatter (ApiResponse.js)
+Ensures that every successful request sent back to the frontend (like a React app) follows the exact same structure (e.g., always containing statusCode, data, and success: true).
+
+
+3. Asynchronous Handler Wrapper (asyncHandler.js)
+A clean utility function that eliminates the need to manually write repetitive try...catch blocks inside every single controller function. It wraps your route functions and passes errors down to Express automatically.
+
+
+4. Generic Helper Tools
+logger.js: Custom terminal log formatters.
+dateFormatter.js: Functions to clean up timestamps.
+validators.js: Regular expressions to check if an email format or password strength is valid.

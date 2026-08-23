@@ -47,6 +47,7 @@ Step D: The Backend sends a ResponseA server cannot leave a request hanging. Onc
 // 1. Import your MongoDB Schema
 const Note = require('../models/Note'); 
 
+
 app.post("/api/notes/addnote", async (req, res) => {
     try {
         // 2. Extract the data that React sent in the request body
