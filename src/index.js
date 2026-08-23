@@ -19,6 +19,8 @@ connectDB()
   app.listen(process.env.PORT || 8000, ()=>{
     console.log(`Listning on Post ${process.env.PORT}`);
   });
+
+  //The listener called when the error event fires. It receives the parent(here error) app as its only argument: callback(parent)
   app.on("error",(error)=>{
     console.log("ERROR",error);
   })

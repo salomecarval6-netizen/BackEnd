@@ -1,3 +1,10 @@
+mongoose-aggregate-paginate website.
+
+npm i mongoose-paginate-v2
+
+
+
+
 **1.WHAT I/P WILL BE TAKEN FROM USER AND TO BE STORED IN DB?**
 
 

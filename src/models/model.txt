@@ -10,3 +10,55 @@ Every file inside the models folder follows a strict 3-step coding pattern:
 1. Import Mongoose: Bring in the required modules.
 2. Define the Schema: Design the structure, validation constraints, and default values.
 3. Compile and Export: Convert the schema rules into an actionable model object.
+
+A.When your database grows to hold thousands of entries (like products, tweets, or videos), sending all that data to the frontend at once will cause your app to freeze.
+This plugin automatically cuts your database responses into structured chunks (e.g., 10 items at a time) and calculates metadata like the total number of pages and whether a next page exists
+npm i mongoose-paginate-v2
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+videoSchema.plugin(mongooseAggregatePaginate);
+
+
+B.bcryptjs is used exclusively to securely hash and verify user passwords before storing them in a database.
+npm install bcryptjs
+import bcrypt from "bcryptjs";
+
+1. Registration (Hashing the Password)When a new user signs up, you pass their plain-text password to bcryptjs. It generates a unique cryptographic hash, which you then save to your database.
+2. Login (Verifying the Password)Because hashing is a one-way street, you cannot "decrypt" the hash back into the original password. When a user tries to log in, bcryptjs takes the newly entered password, mathematically compares it to the saved hash, and returns a simple true or false.
+
+
+
+C. JWT : JSON Web Token. It is a compact, URL-safe standard (RFC 7519) used to securely transfer information between a frontend application and a backend server as a JSON object.In modern web development, JWT is most commonly used for user authentication and authorization. Think of it like a digital, unforgeable passport that your server issues to a user once they log in successfully.
+
+visit jwt.io to see tokens.
+
+npm install jsonwebtoken
+import jwt from "jsonwebtoken";
+
+// Injecting a custom generation method into your Mongoose user schema rules
+userSchema.methods.generateAccessToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            email: this.email,
+            username: this.username
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY // e.g., "1d" (1 day)
+        }
+    )
+}
+
+
+
+The Structure of a JWT:
+
+A JSON Web Token consists of three distinct parts separated by dots (.): Header.Payload.Signature. Visually, it looks like a long string of random text characters
+1. The Header (Red):
+Contains metadata about the token, typically specifying the type of token (JWT) and the signing algorithm being used (such as HS256).
+
+2. The Payload (Payload Data - Middle)Contains the actual data or claims you want to store inside the token. This is where you store public user identifiers (like their database ID or role), so your server can immediately identify who is making the API call.
+Security Warning: The payload is simply base64-encoded, not encrypted. Anyone can easily decode it. Never store sensitive passwords or credit card numbers inside a JWT payload.
+
+3. The Signature (Blue)This is the security guard of the token. It takes your encoded Header, your encoded Payload, and combines them with a highly secret key string hidden inside your server's .env file to create a cryptographic signature.
+If a hacker tries to modify the user ID inside the payload to break into another user's account, the signature becomes invalid immediately, and your server will reject the request with an Unauthorized error.
