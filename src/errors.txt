@@ -1,0 +1,11 @@
+only one program can control a specific port at any given time.
+
+Think of your computer's IP address (127.0.0.1) as the street address of a massive apartment building.
+The ports are the individual apartment room numbers.Mail (network traffic) sent to Room 8000 was being signed for by the old tenant who didn't know your code.
+Moving your application to Room 8005 meant your specific application was finally the one opening the door and handling the incoming requests.
+
+
+To get port no:On Windows :
+cmdnetstat -ano | findstr LISTENING
+
+Look for a line showing 0.0.0.0:8000 or similar numbers at the end of the IP thats your port number

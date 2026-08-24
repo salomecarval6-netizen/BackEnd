@@ -1,0 +1,73 @@
+package.json
+    ↓
+npm run dev
+    ↓
+nodemon ... src/index.js
+    ↓
+src/index.js [starts everything: MongoDb+express Server]
+    ↓
+import connectDB from "./db/index.js"
+    ↓
+import express from "express"
+    ↓
+import app from './app.js'
+    ↓
+app.js executes
+    ↓
+const app = express() [app.js: configures the application]
+    ↓
+app configuration / routes / middleware
+    ↓
+export app
+    ↓
+back to index.js
+    ↓
+MongoDB connection
+    ↓
+app.listen(...)
+    ↓
+SERVER IS NOW LISTENING
+    ↓
+(waiting...)
+    ↓
+Browser sends GET /
+    ↓
+Express finds app.get("/")
+    ↓
+route callback executes
+    ↓
+Request
+  ↓
+Express receives it
+  ↓
+Middleware
+  ↓
+Route/controller
+  ↓
+Query MongoDB
+  ↓
+MongoDB returns users
+  ↓
+Backend creates response
+  ↓
+res.json(users)
+  ↓
+Browser receives data
+
+
+package.json
+                     │
+                     │ npm run dev
+                     ↓
+                src/index.js
+                     │
+          ┌──────────┴──────────┐
+          ↓                     ↓
+      db/index.js             app.js
+          ↓                     ↓
+      MongoDB                 Express app
+          │                     │
+          └──────────┬──────────┘
+                     ↓
+              Server starts
+                 Port 8000

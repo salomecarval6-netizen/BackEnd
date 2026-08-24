@@ -32,7 +32,10 @@ The Complete 7-Step Backend Architecture:
 2. Connect Database (Mongoose)
 3. Start Server Listeners (app.listen)
 4. Mount System Middleware (express.json, cors)  
+   npm i cookie-parser, cors and then import in app.js
 5. Register Application Routes (app.use('/api', ...))
+app.use() is used when a middleware setup is required.
+
 6. Execute Controllers & Models (Business logic)
 7. Global Error Handling Middleware
 

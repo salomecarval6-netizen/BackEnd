@@ -11,8 +11,10 @@ const storage = multer.diskStorage({
   },
 });
 
+//Initialize the upload middleware instance
 const upload = multer({ storage: storage });
 
-export default upload = multer({
-  storage,
-})
+//Export the instance cleanly as the default export
+export default upload ;
+
+   

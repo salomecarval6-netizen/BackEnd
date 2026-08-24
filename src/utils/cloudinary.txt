@@ -6,16 +6,37 @@ https://cloudinary.com/documentation/node_integration#install : Read study this 
 1. express fileupload  
 2. multer
 
+THIS ALL READ PRACTICE FROM documentation OF cloudinary.
 
-
+A.INSTALL:
 npm install cloudinary
 
-import { v2 as cloudinary } from 'cloudinary';
 
+B.IMPORT:
+import { v2 as cloudinary } from 'cloudinary';
 cloudinary.config({ 
   cloud_name: 'my_cloud_name', 
   api_key: 'my_key', 
   api_secret: 'my_secret'
 });
 
+
+C.UPLOAD:
+cloudinary.v2.uploader
+.upload("dog.mp4", {
+  resource_type: "video", 
+  public_id: "my_dog",
+  overwrite: true, 
+  notification_url: "https://mysite.example.com/notify_endpoint"})
+.then(result=>console.log(result));
+
+
+
 npm install multer
+
+
+
+APPROCH:
+
+1. Through multer take file from user and store in localStorage.25
+2. Then using Cloudinary take from cloudStorage and upload to the server.

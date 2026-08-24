@@ -17,7 +17,9 @@ It allows you to execute code, modify incoming request (req) and response (res) 
 */
 
 import cors from "cors";
-import cokkieParser from "cookie-parser";
+import cookieParser from "cookie-parser"; 
+
+
 
 const app= express();
 
@@ -57,6 +59,12 @@ app.use(cookieParser());
 
 
 //2. MOUNT APPLICATION ROUTES Route-Specific application: only guards /
+import userRouter from "./routes/user.routes.js";
+
+
+//http://localhost:8000/api/v1/users/register
+app.use('/api/v1/users', userRouter)
+//here userRouter is the middleware
 
 
 //3. MOUNT GLOBAL Error-Handling Middleware (err, req, res, next).

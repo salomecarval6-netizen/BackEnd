@@ -11,7 +11,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
+    "comment": "NodeMon automatically restarts when u change your code",
+    "terminalCommand1":"npm run dev: will start from index.js file inside src folder",
+    "terminalCommand2": "npm start : will run index.js from root project folder"
+   
   },
   "dependencies": {
     "cloudinary": "^2.10.1",
@@ -19,6 +23,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mongodb": "^7.5.0",
     "mongoose": "^9.9.3",
     "mongoose-paginate-v2": "^1.9.5",
     "multer": "^2.2.0"

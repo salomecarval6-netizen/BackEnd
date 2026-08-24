@@ -1,5 +1,8 @@
 //as soon as a video is seen by the user push the id of the video in array of id
 
+// the userSchema acts as the blueprint (defining what data is allowed), 
+// the User model is the actual construction manager that interacts with MongoDB.
+
 import mongoose, {Schema} from "mongoose";
 
 //Plugins are reusable tools used to share hooks, middleware, and schema modifications across multiple Mongoose schemas.
@@ -71,7 +74,7 @@ userSchema.pre("save", async function(next) {
   if(!this.isModified("password"))  return next();
 
   // Generate the secure hash (using 10 auto-generated salt rounds)
-  this.password= bcrypt.hash(this.password, 10);
+  this.password= await bcrypt.hash(this.password, 10);
   next();
 })
 
@@ -121,4 +124,21 @@ userSchema.methods.generateRefreshToken= function (){
 
 export const User= mongoose.model("User",userSchema);
 
-//inside mongoDB its saved with name "users"
+//inside mongoDB its saved with name "users" i.e lowercase and plural
+
+//User is a Mongoose Model.The User object gives you access to built-in Mongoose database methods (like queries, updates, and deletions). You will use this exact User model inside your controller to handle registration, login, and queries.
+//Thus we can talk with MongoDb only with this User object.
+/*
+// Creates a new user row matching your schema constraints
+const newUser = await User.create({ username, email, password });
+
+
+// Looks up a user in MongoDB by their email or username
+const existingUser = await User.findOne({ email });
+
+
+// Finds a user by ID and pushes a new video ID into their watch history array
+await User.findByIdAndUpdate(userId, {
+    $push: { watchhistory: videoId }
+});
+*/

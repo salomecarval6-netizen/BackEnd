@@ -1,0 +1,34 @@
+What was the actual error?
+
+Your original connection string started with:
+mongodb+srv://
+This is called an SRV connection string.
+
+When Node.js/Mongoose sees mongodb+srv://, it doesn't immediately connect to one specific MongoDB server. First, it asks DNS:
+"Hey DNS, where are the MongoDB servers for cluster0.6pibbx.mongodb.net?"
+It does this using an SRV record:
+_mongodb._tcp.cluster0.6pibbx.mongodb.net
+
+Your computer tried to find that record and got:
+Non-existent domain
+That's why Node eventually showed:
+Error: querySrv ECONNREFUSED
+
+Why did turning OFF "SRV Connection String" fix it?
+When you turned SRV Connection String OFF, Atlas gave you a connection string beginning with:
+mongodb://
+instead of:
+mongodb+srv://
+
+
+After turning SRV off:
+Node.js
+   ↓
+mongodb://
+   ↓
+Direct MongoDB server addresses
+   ↓
+✅ MongoDB Atlas
+
+Turning SRV off didn't "fix MongoDB Atlas." Your Atlas cluster was fine.
+It simply bypassed the DNS SRV lookup that was failing.

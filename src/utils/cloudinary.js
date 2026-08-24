@@ -54,4 +54,4 @@ cloudinary.v2.uploader
 
 
 
-export default uploadOnCloudinary;
+export {uploadOnCloudinary};
