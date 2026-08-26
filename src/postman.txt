@@ -1,0 +1,13 @@
+
+VIDEO 14
+
+
+Data inside body:
+1.form-Data: for files
+2.raw-JSON: cant send filedata. Thus only files
+
+First start your backend server: npm run dev
+Then send data from postman
+
+
+Also the common part of URL can be decalred inside Environmental variables and using {} we can use it in link while sending requests.

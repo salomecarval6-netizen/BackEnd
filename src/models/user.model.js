@@ -12,7 +12,6 @@ import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
   {
-
     username:{
       type: String,
       required: true,
@@ -54,8 +53,8 @@ const userSchema = new Schema(
     refreshToken:{
       type: String,
     }
-
-},{timestamps})
+//{ timestamps: true }: Automatically injects createdAt and updatedAt date fields into every document.
+},{timestamps: true})
 
 
 // 2. Inject the plugin functionality directly into your schema rules.
@@ -67,26 +66,39 @@ userSchema.plugin(mongooseAggregatePaginate);
 3. User.mongooseAggregatePaginate(...): The newly generated method you call to get neatly sliced pages of database results automatically.
 */
 
-//its a middleware thus will require access of next. So that once this function is being completely executed pass on the flag to the next middleware or router.
-userSchema.pre("save", async function(next) {
+//By injecting this plugin, you equip your User model with advanced pagination powers. If you want to fetch a user's watch history or list users, instead of loading 10,000 records at once and crashing your server, you can pass simple page blocks (page: 1, limit: 10) to slice database responses cleanly.
 
+
+//its a middleware thus will require access of next. So that once this function is being completely executed pass on the flag to the next middleware or router.
+
+//When you define a middleware as async, Mongoose manages the control flow automatically through the Promise lifecycle. If you try to pass next into an async function, Mongoose does not supply the callback function, leaving the parameter undefined and causing the TypeError: next is not a function crash.
+userSchema.pre("save", async function(next) {
   //only when password field is saved or send then only execute this
-  if(!this.isModified("password"))  return next();
+// If a user updates their avatar or email, you do not want to re-hash their already-hashed password. This check ensures encryption only runs when the password field is physically changed.  
+  if(!this.isModified("password"))  //return next(); NO NEED
+      return; // Just return to skip
 
   // Generate the secure hash (using 10 auto-generated salt rounds)
   this.password= await bcrypt.hash(this.password, 10);
-  next();
+  // No next() call needed here at the end since Since your function is declared as async, returning out of the function implicitly resolves a JavaScript promise, signaling Mongoose to advance automatically.
 })
 
+//CUSTOM INSTANCE METHODS: 
+//Any function attached to userSchema.methods becomes instantly available on individual user records fetched from the database (e.g., user.isPasswordCorrect()).
 
 //Arrow functions do not have their own this context. By using a standard function, the this keyword correctly points to the current user document loaded from your MongoDB collection. This is what allows you to read the encrypted password using this.password.
-userSchema.methods.isPasswordCorrect= async function(password){
 // Compare the input password with the hash pulled from your database bcrypt.compare(loginPassword, hashedPassword); 
+userSchema.methods.isPasswordCorrect= async function(password){
+
      return await bcrypt.compare(password, this.password);
 };
 
 
 //Access Token: Short-lived (e.g., 15 minutes). Used to access data.
+
+//userSchema.methods.generateAccessToken: By attaching this to methods, you make it available on any individual user document fetched from the database.
+//function () { ... }: Crucial Detail: You must use a regular function here, not an arrow function (() =>). Regular functions preserve the keyword this, allowing you to access that specific user's database properties (like this._id and this.email).
+
 //The value is returned directly back to the Controller function that originally called your .isPasswordCorrect() method.
 userSchema.methods.generateAccessToken= function (){
   return jwt.sign(
@@ -104,7 +116,8 @@ userSchema.methods.generateAccessToken= function (){
         }
       )
 }
-
+//Access token is short-lived while Refresh token is long-lived.
+//Validation of user is done using AccessToken but just to avoid repetitive login of user we give refreshToken to hit the same endpoint as the refresh token we have
 //Refresh Token: Long-lived (e.g., 10 days). Stored in your database and used only to request a brand-new Access Token when the short-lived one expires.
 userSchema.methods.generateRefreshToken= function (){
   return jwt.sign(

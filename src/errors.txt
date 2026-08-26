@@ -8,4 +8,10 @@ Moving your application to Room 8005 meant your specific application was finally
 To get port no:On Windows :
 cmdnetstat -ano | findstr LISTENING
 
-Look for a line showing 0.0.0.0:8000 or similar numbers at the end of the IP thats your port number
+Look for a line showing 0.0.0.0:8000 or similar numbers at the end of the IP thats your port number.
+
+When any imported package isnt found then install that package again in root directory.
+
+Handling the case for each input field that if its not entered by user then ti prevent undefined handle it
+
+When testing routes that handle file uploads with Multer, you cannot send a raw JSON payload. You must use form-data.

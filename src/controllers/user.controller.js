@@ -3,6 +3,33 @@ import {ApiError} from "../utils/ApiError.js";
 import { User } from '../models/user.model.js';
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from '../utils/ApiResponse.js';
+import jwt from "jsonwebtoken";
+
+
+const generateAccessAndRefreshTokens= async (userId)=>{
+  try{
+    const user= await User.findById(userId) 
+    const accessToken=user.generateAccessToken()
+    const refreshToken=user.generateRefreshToken()
+
+    user.refreshToken=refreshToken
+// If your schema requires a password field, but your database query excluded it for security (e.g., User.findById(id).select("-password")), a standard .save() will fail because the required password field appears to be missing.
+//bypasses all schema-defined validations (like required, minLength, or custom validators) for that specific save operation.
+    await user.save({validateBeforeSave: false})  
+
+    return {accessToken,refreshToken}
+
+  } catch(error){
+    throw new ApiError(500,"Something went wrong while geenrating access and refresh token")
+  }
+};
+
+//The asyncHandler wrapper is designed specifically for asynchronous functions. Its job is to catch any background errors (rejected Promises) and automatically pass them to your global Express error-handling middleware using next(err).
+
+/*
+The Outer Parentheses asyncHandler( ... ): This is an immediate execution of your utility wrapper.
+The Inner Arrow Function async (req, res) => { ... }: This is the parameter you are feeding into asyncHandler. It is your actual controller logic. You are not executing this inner function right now. You are passing its complete blueprint into asyncHandler.
+*/
 
 const registerUser= asynchandler(async (req,res)=>{
 
@@ -13,14 +40,15 @@ const registerUser= asynchandler(async (req,res)=>{
   */ 
 
   //req.body: yeilds all the form or direct JSON data. Separate way to get data send through URL
-
+//1.  Get User details from frontend
   const {fullname, email, username, password}= req.body;
-  console.log("Email",email);
+  //console.log("Email",email);
 
+//2.Validation to check if not empty
   //This creates a temporary array containing the values of your user inputs.
   if([fullname, email, username, password]
     //.some() method loops through your array and evaluates a condition for each item. It returns true if at least one item in the array satisfies the condition.
-     .some((field)=>field?.trim()==="") //?. (Optional Chaining)
+     .some((field)=> !field || field.trim()==="") //?. (Optional Chaining)
     )
   {
     //throw keyword instantly halts the execution of your current function
@@ -28,58 +56,71 @@ const registerUser= asynchandler(async (req,res)=>{
     //global error-handling middleware. Sends code & message
   }
 
-
-  const existedUser= User.findOne({
-    $or:[{username},{email}]
+//3.Check if user already exits
+  const existedUser= await User.findOne({
+    $or:[{username},{email}] //return a user document if it matches at least one of the conditions provided inside the array.
   })
 
   if(existedUser){
     throw new ApiError(409,"User with email or username already exists")
   }
 
+  //console.log(req.files)
+//3.check for images/ avatar
   //provided by multer middleware
-  const avatarLocalPath= req.files.avatar[0]?.path;
-  const coverImageLocalPath= req.files.coverimage[0]?.path;
-  
+  //Added optional chaining before accessing indices to prevent server crash if files are omitted
+  const avatarLocalPath= req.files?.avatar?.[0]?.path;
+  const coverImageLocalPath= req.files?.coverimage?.[0]?.path;
+
   if(!avatarLocalPath){
     throw new ApiError(400,"Avatar file is required")
   }
-})
-
-
+//4. Upload them to cloudinary
+//returns a heavily detailed JavaScript Object like avatar.url,avatar.resource_type,avatar.secure_url
 const avatar= await uploadOnCloudinary(avatarLocalPath);
-const coverImage= await uploadOnCloudinary(coverImageLocalPath);
-
+//Prevent passing 'undefined' to Cloudinary if cover image wasn't uploaded
+const coverImage=coverImageLocalPath ? await uploadOnCloudinary(coverImageLocalPath) : null;
+//Classic ternary conditional check since in case of optional chaining done up if value doesnt exist then it evalutes to undefined so to avoid it
+                                            //OR
+/*
+let coverImageLocalPath;
+if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+  coverImageLocalPath= req.files.coverImage[0].path;
+}
+*/
 
 if(!avatar){
   throw new ApiError(400,"Avatar file is required");
 }
 
-User.create({
+//5. Create user object and entry into DB
+const user= await User.create({
   fullname,
   avatar: avatar.url,
   //entire avatar object is returned
-  coverimage: coverimage?.url || "", //since its not required it may be empty so if empty to avoid error default to ""
+  coverimage: coverImage?.url || "", //since its not required it may be empty so if empty to avoid error default to ""
   email,
   password,
   username:username.toLowerCase()
 })
 
-const createdUser= await User.findById(User._id).select(
+//6. Remove password and refreshToken
+const createdUser= await User.findById(user._id).select(
   "-password -refreshToken"
 )
 
+//7. Check if user is created inside DB
 if(!createdUser){
-  throw new ApiError(500,"Something went wrong whileregistrating the user")
+  throw new ApiError(500,"Something went wrong while registrating the user")
 }
 
 //default id generated by mongodb while registering only user datat object
 
-
+//8. Return Response
 return res.status(201).json(
-  new ApiResponse(200,createdUser, "User registered successfully")
+  new ApiResponse(201,createdUser, "User registered successfully")
 )
-
+});
 /*THE SECURE PACKAGE SEND THROUGH CHAINING:
 res (The Response Object): This is the delivery truck that Express gives you to send data back to the frontend.
 .status(200) (The Label on the Box): This sets the HTTP Status Code. It tells the frontend browser or mobile app instantly whether the request was a success or a failure before it even opens the package.200 means "Success".400 means "Client Error" (e.g., they forgot a password).500 means "Server Error" (e.g., database crashed).
@@ -88,4 +129,158 @@ res (The Response Object): This is the delivery truck that Express gives you to 
 When you call res.status(200), it configures the status code and then returns the res object again, allowing you to immediately call .json().
 */
 
-export { registerUser };
+const loginUser= asynchandler(async (req,res)=>{
+
+
+  //1. extract data from req body
+  const { email,username,password} = req.body;
+
+  //2. find the user in db
+  if(!(username || email))
+  {
+      throw new ApiError(400,"Username or password is required!");
+  }
+   //that is find the user either by username or email
+  //User.findOne({username}) : just will return the first matching user with this username
+  const user= await User.findOne({  //returned object ko save also dusra continent so await
+    $or:[{username},{email}]//or returns an object which will either match username or email
+  })
+
+  if(!user)
+  {
+      throw new ApiError(404,"User does not exist!");
+  }
+
+  //3. password check
+//only mongoose related methods to be accessed using mongoose object 'User'. Rest all methods are accesible my our object 'user'
+  const isPasswordValid= await user.isPasswordCorrect(password);
+
+  if(!isPasswordValid)
+  {
+      throw new ApiError(401,"Password Incorrect!");
+  }
+//whensoever u feel that it will require time then use await
+//4. access and refresh token to be generated
+  const {accessToken,refreshToken}= await generateAccessAndRefreshTokens(user._id)
+
+
+  /*OPTION1:
+  Just to remove sensitive fields (like password and refreshToken) before sending the user object back to the client in the API response.
+  do not need to fetch the user from the database again.
+  const loggedInUser= await User.findById(user._id)
+  .select("-password -refreshToken")
+  */
+
+  /*OPTION2:Convert to a plain object and delete fields 
+  Mongoose documents have a .toObject() method. You can convert the user you already found, delete the sensitive fields using JavaScript, and avoid a second database query entirely.
+  */
+  // 1. Convert Mongoose document to a plain JavaScript object
+  const loggedInUser = user.toObject();
+
+  // 2. Safely remove the sensitive fields
+  delete loggedInUser.password;
+  delete loggedInUser.refreshToken;
+
+  //5. send cookies
+  //By default cookies can be modified by frontend easily
+  const options={
+    httpOnly: true,// Prevents browser JavaScript from reading/stealing this cookie
+    secure: true, // Forces the cookie to only be transmitted over secure HTTPS connections
+    sameSite: "None"// Essential if your frontend and backend run on different domains
+  }
+   
+  //6. successful response message
+  return res.status(200)
+  // used to attach a cookie to the server's HTTP response. take this piece of data and save it in your local cookie storage box.
+  //res.cookie("cookieName", "cookieValue", { options })
+  .cookie("accessToken",accessToken,options)
+  .cookie("refreshToken",refreshToken,options)
+  .json(new ApiResponse(
+          200,
+          {//data field send to ApiResponse
+            user: loggedInUser,accessToken,refreshToken   //if user want to save this details so send it to user
+          },
+          "User LoggedIn Successfully!!"
+          )
+       )
+})
+
+const logoutUser= asynchandler( async (req,res)=>{
+  // const {username,email}= req.body; Wrong since we cant ask user to entire details again just to logout
+
+  //since in verifyJWT we have used req.user=user thus we have access of user
+  //to upload files we used multer as middleware, to generate cokkie we used cokkie-parser as middleware. So now creat own middleware
+  
+// since in verifyJWT we have used req.user=user thus we have access of user
+//Wiping the Token from MongoDB (The Database Cleanup)
+  await User.findByIdAndUpdate(req.user._id,
+        {
+          $set: {
+            refreshToken:undefined
+          }
+        },
+        {
+          new: true
+        }
+  )
+  
+//Destroying the Browser Cookies (The Client Cleanup)  
+  const options={
+    httpOnly: true,
+    secure: true
+  }
+  //The built-in Express .clearCookie() method sends an explicit instruction command back to the user's web browser.
+  return res.status(200)
+  .clearCookie("accessToken",options)
+  .clearCookie("refreshToken",options)
+  .json(new ApiResponse(200,{},"User Logged out successfully"))
+})
+
+//Declares a constant variable to store your route handler middleware function.
+const refreshAccessToken= asynchandler( async (req,res)=>{
+
+//asyncHandler(...): Wraps your code in a utility function. It catches any errors thrown inside this asynchronous function and automatically passes them to Express's global error-handling middleware (next(error)), preventing your server from crashing.
+
+
+
+  //access the refreshToken from the cookies
+  const incomingRefreshToken= req.cookies.refreshToken || req.body.refreshToken
+
+  if(!incomingRefreshToken){
+    throw new ApiError(401,"Unauthorized Request")
+  }
+
+try {
+    const decodedToken = jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET);
+  
+    //since while generating refresh token we hvae given it a id using this id we can access the user from DB
+    const user= await User.findById(decodedToken?._id)
+  
+    if(!user){
+      throw new ApiError(401,"Invalid refresh token")
+    }
+  
+    if(incomingRefreshToken !== user?.refreshToken){
+      throw new ApiError( 401,"Refresh token is expired or used")
+    }
+  
+    const{accessToken,newRefreshToken }= await generateAccessAndRefreshTokens(user._id)
+  
+    const options= {
+      httpOnly: true,
+      secure: true
+    }
+  
+     return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",newRefreshToken,options).json(new ApiResponse(200,{accessToken,newRefreshToken},"Access token refresh successfully"))
+    
+} catch (error) {
+  throw new ApiError(401, error?.message || "Invalid RefreshToken")
+}
+} )
+
+export { 
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken
+};

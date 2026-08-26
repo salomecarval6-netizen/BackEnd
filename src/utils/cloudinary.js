@@ -29,21 +29,23 @@ const uploadOnCloudinary= async (localFilePath)=>{
           if(!localFilePath) return null;
 
           //upload the file on cloudinary
+
           const response= await cloudinary.uploader.upload(localFilePath, {
-              resource_type: "auto"
+              resource_type: "auto"//returns a heavily detailed JavaScript Object containing comprehensive metadata about the file that was successfully processed and saved onto Cloudinary's cloud storage servers.          
           })
 
-          console.log(response);
+        //console.log(response);
+
         //file has been uploaded successfully
-        console.log("file has been uploaded on cloudinary",
-        response.url);
+        //console.log("file has been uploaded on cloudinary",response.url);
+        fs.unlinkSync(localFilePath)
         return response;
         } catch(error){
             fs.unlinkSync(localFilePath) //remove the local saved temporaray file as the upload operation got failed
             return null;
         }
 }
-
+/*
 cloudinary.v2.uploader
 .upload("dog.mp4", {
   resource_type: "video", 
@@ -52,6 +54,6 @@ cloudinary.v2.uploader
   notification_url: "https://mysite.example.com/notify_endpoint"})
 .then(result=>console.log(result));
 
-
+*/
 
 export {uploadOnCloudinary};
