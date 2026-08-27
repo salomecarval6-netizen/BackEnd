@@ -1,0 +1,105 @@
+The $set operator is a built-in MongoDB update operator that tells the database to replace the value of a specific field with a new value, without touching or altering any other fields in the document.If you don't use $set when running an update query, MongoDB will make a catastrophic mistake: it will overwrite your entire user document with whatever object you passed in.
+
+
+
+1. Logical Operators (Used to filter find / findOne queries):
+These operators act like the logic circuits in JavaScript (&&, ||, !). They are used to bundle multiple search conditions together.
+$or: Returns documents that match at least one condition in the array.
+$and: Returns documents that must match every single condition in the array.
+$not: Inverts a condition (e.g., find items where price is not greater than 10).
+$nor: Returns documents that fail all of the conditions in the array.
+
+
+2. Update Operators (Used inside findByIdAndUpdate / updateOne):
+These operators tell the database exactly how to modify data. They prevent you from accidentally overwriting your entire document.
+$set: Changes the value of a specific field safely.
+$unset: Deletes a specific field key from the database entirely.
+$inc: Adds or subtracts a number (perfect for view counters or likes).
+$push: Appends an item to the end of an array.
+$pull: Removes an item from an array matching a specific value.
+$addToSet: Appends an item to an array only if it doesn't already exist (prevents duplicates).
+                                                            
+
+3. Comparison Operators (Used to look for ranges/matches):
+Instead of matching an exact value (like age: 20), these let you write math-like conditions inside your search objects.
+$gt / $gte: Greater Than / Greater Than or Equal to (> / >=).
+$lt / $lte: Less Than / Less Than or Equal to (< / <=).
+$ne: Not Equal to (!=).
+$in: Matches any value specified inside an array (e.g., status is either "active" or "pending").
+$nin: Not In (matches none of the values specified in the array).
+
+TO COUNT NO OF SUBCRIBERS WE SELECT ALL DOCUMENTS WITH THAT CHANNEL NAME. Thus no find no of subsrcibers we count the no of channels
+
+TO COUNT NO OF CHANNELS WE SELECT ALL DOCUMNETS WITH THAT SPECIFIC SUBSRIBER. Thus no of subsriber gives no of channels
+
+
+To join all information from subscription to users.
+
+AGGREGATION PIPELINES:(docs of mongoDb do study eveyrthing properly)
+The subscription schema consists of subsrcibers and channels.
+
+The important part: subscription relationship
+A user can subscribe to multiple channels.
+
+This means the relationship between Subscribers and Channel is many-to-many (M:N).
+Why?
+One user can subscribe to many channels.
+One channel can have many subscribers
+
+Subscribers and Channels have a many-to-many relationship, so we use a Subscription table to store which user subscribed to which channel.
+
+Think of an aggregation pipeline exactly like a factory assembly line or a water filtration system.Instead of raw materials, your factory processes database documents. Data enters the pipeline at one end, passes through several specialized stages (workstations), gets filtered, reshaped, or sorted at each stage, and comes out the other end as a beautifully packaged, customized summary report.
+
+The 3 Golden Rules of Pipelines:
+Sequential Order: Documents flow through stages from top to bottom. Stage 2 only sees the data that Stage 1 passed to it.
+Filtering reduces rows: Stages like $match reduce the number of documents moving down the belt
+Reshaping changes columns: Stages like $project alter what fields inside a document look like.
+Data never changes in the DB: Aggregation pipelines are read-only operations. They process data on the fly to give you an output, but your original database collections remain completely untouched.
+
+1. $match (The Gatekeeper / Filter): This is exactly like a standard find() query. Its job is to filter out documents you don't care about early so the server doesn't waste energy processing them.
+
+2. $project (The Reshaper): This controls what fields are visible. You can use it to include fields (1), exclude fields (0), or create brand new calculated fields.
+
+
+ Stage 1: $match (Finding the Target Channel):
+ Think of this as the SQL WHERE clause or standard Mongoose.findOne(). It filters the documents in the collection so only the ones that match your criteria move forward.
+ Syntax Keys:
+ fieldName: The name of the field inside your database document that you want to check (e.g., username).
+ value: The target data you are searching for (e.g., the username from the URL parameter).
+ 
+
+ Stage 2: $lookup #1 (Fetching the Channel's Subscribers)
+ from: Specifies the target collection you want to join with. Important Rule: This must be the actual name of the collection in MongoDB, which is always lowercase and pluralized (e.g., "subscriptions"), not your Mongoose model name (Subscription).
+ localField: The field in your current collection (User) that you want to use as the link. Here, it is "_id", meaning we are using the user's unique ID.
+ foreignField: The field in the other collection (subscriptions) that holds the matching value.In your first lookup, you look for "channel" to find who is subbed to this user.In your second lookup, you look for "subscriber" to find who this user is subbed to.
+ as: The name of the brand-new array field you want to create on your current document to hold the matching results (e.g., "subscribers" or "subscribedTo").
+
+
+ Stage 4: $addFields (The Field Creator)
+
+ newFieldName: The name of the custom field you want to create out of thin air.
+ $size: An expression operator that counts the number of elements inside an array. It takes a string pointing to the array field prefixed with a $ (e.g., "$subscribers").
+ $cond: An expression operator that works like an if-else statement or a ternary operator (condition ? true : false). It takes three sub-keys:if: The condition to evaluate.then: The value to return if the condition is true.
+ else: The value to return if the condition is false.
+ $in: Used inside the if block. It checks if a specific value exists inside a targeted array. It takes an array format: [ valueToSearchFor, "$arrayToSearchInside" ]. Here, you search for the logged-in user's ID (req.user?._id) inside the "$subscribers.subscriber" array.
+
+
+Stage 5: $project (The Blueprint / Reshaper)
+This stage defines the final shape of the JSON object that gets sent to the client. You use it to pick and choose exactly which fields should stay and which should be deleted.
+Syntax Keys:
+fieldName: 1: Setting a field to 1 (or true) means include this field in the final output. If you list any fields with a 1, all other fields not mentioned are automatically excluded.
+fieldName: 0: Setting a field to 0 (or false) means explicitly exclude/hide this field. The only field you ever need to explicitly set to 0 is _id, because MongoDB includes _id by default unless you tell it not to.
+
+
+
+
+Advanced Nested Aggregation Pipeline :
+
+
+multiple PIPELINES
+
+Mongoose doesnt work with aggregation pipelines.
+
+Nested Lookup:
+From watchlist we will get multiple docs for videos us mai seh select For every doc from owners go to users
+

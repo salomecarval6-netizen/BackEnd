@@ -193,12 +193,17 @@ const loginUser= asynchandler(async (req,res)=>{
   return res.status(200)
   // used to attach a cookie to the server's HTTP response. take this piece of data and save it in your local cookie storage box.
   //res.cookie("cookieName", "cookieValue", { options })
+  //res.cookie() is for writing data to the browser's storage: 
+  //1. It saves the cookies inside the browserWhen res.cookie() runs, it modifies the Response Headers by adding a special instruction called Set-CookieWhen the user's browser reads this header, it automatically intercepts the data and securely saves accessToken and refreshToken inside its local cookie storage box.
+  //res.cookie(The hidden background headers (Set-Cookie).)
   .cookie("accessToken",accessToken,options)
   .cookie("refreshToken",refreshToken,options)
+  //.json(The text/data payload printed on the screen.)
   .json(new ApiResponse(
           200,
           {//data field send to ApiResponse
             user: loggedInUser,accessToken,refreshToken   //if user want to save this details so send it to user
+ //2. It displays the tokens inside your JSON response bodyBecause you also added accessToken and refreshToken inside your .json() object, those tokens will be printed directly on the screen or in the response body         
           },
           "User LoggedIn Successfully!!"
           )
@@ -215,8 +220,9 @@ const logoutUser= asynchandler( async (req,res)=>{
 //Wiping the Token from MongoDB (The Database Cleanup)
   await User.findByIdAndUpdate(req.user._id,
         {
-          $set: {
-            refreshToken:undefined
+          //this removes the feild from the document
+          $unset: {
+            refreshToken:1  //or $set:{refreshToken: undefined/null}
           }
         },
         {
@@ -278,9 +284,316 @@ try {
 }
 } )
 
+
+const changeCurrentPassword= asynchandler(async(req, res)=>{
+
+    const {oldPassword, newPassword, confirmPassword} = req.body;
+
+    const user= await User.findById(req.user?._id)
+
+    const isPasswordCorrect=await user.isPasswordCorrect(oldPassword)
+    if(!isPasswordCorrect ){
+        throw new ApiError(400,"Invalid old password!")
+    }
+
+    if(newPassword !== confirmPassword){
+      throw new ApiError(400, "Password not matching")
+    }
+
+    user.password= newPassword;
+//user.save(...): A Mongoose method that takes the current JavaScript user object and saves its updated properties back into the matching MongoDB document.
+//{ validateBeforeSave: false }: The options object. It explicitly commands Mongoose to bypass all schema-level validations (like required, unique, minlength, etc.) for this specific save operation.
+    await user.save({validateBeforeSave: false})
+    //.save() we trigger the userSchema pre hook written to bcrypt the written password
+
+    return res.status(200).json(new ApiResponse(200,{},"Password is changed"))
+})
+
+const getCurrentUser= asynchandler((req,res)=>{
+  return res.status(200).json( new ApiResponse(200, req.user, "Current User fetched successfully"))
+})
+
+const updateAccountDetails = asynchandler(async(req,res)=>{
+  const {fullname, email} = req.body;
+
+  if(!fullname || !email){
+    throw new ApiError(400, "All fields are required")
+  }
+
+  const updatedUser= await User.findByIdAndUpdate(req.user?._id, {$set:{fullname: fullname, email} }, {new: true}).select("-password")
+
+  return res.status(200).json(new ApiResponse(200,updatedUser, "Account details updates successfully!"))
+})
+/*
+A:
+Since your project uses an ApiResponse wrapper to keep all network responses looking identical, you should pass your 3 arguments into that class first, and then pass that instance into .json()
+.json(new ApiResponse(200, req.user, "Current User fetched successfully"));
+
+B:
+If you don't want to use your custom wrapper class and just want to send a raw JSON object back, you must wrap all your data inside a single object argument
+.json({
+    statusCode: 200,
+    data: req.user,
+    message: "Current User fetched successfully"
+})
+*/
+//imp: to update the files new/ sepaarte method has to be written since it works with middle ware 'multer'
+const updateUserAvatar = asynchandler(async(req,res)=>{
+  const avatarLocalPath= req.file?.path;
+
+  if(!avatarLocalPath){
+    throw new ApiError(400,"Avaatr file is empty")
+  }
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if(!avatar.url){
+    throw new ApiError(400,"Error while uploading on avatar")
+  }
+//The req.user?._id is accessible here for the exact same reason it was accessible in your getCurrentUser controller: this route is also protected by your verifyJWT middleware.
+//router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
+//Because verifyJWT runs first, it extracts the access token, verifies it, fetches the user from the database, and attaches that user object directly to the req object (req.user = user). By the time the request reaches your updateUserAvatar controller, req.user is already fully populated and ready to use.
+
+const user= await User.findByIdAndUpdate(req.user?._id, {$set:{avatar:avatar.url }}, {new: true}).select("-password")
+
+  return res.status(200).json(new ApiResponse(200, {}, "Avatar Updated"))
+})
+
+
+const updateUserCoverImage = asynchandler(async(req,res)=>{
+  const CoverImageLocalPath= req.file?.path;
+
+  if(!CoverImageLocalPath){
+    throw new ApiError(400,"Avaatr file is empty")
+  }
+  const coverImage = await uploadOnCloudinary(CoverImageLocalPath);
+
+  if(! coverImage.url){
+    throw new ApiError(400,"Error while uploading on coverImage")
+  }
+  const user= await User.findByIdAndDelete(req.user?._id, {$set:{coverimage: coverImage.url }}, {new: true}).select("-password")
+
+  return res.status(200).json(new ApiResponse(200, {}, " coverImage Updated"))
+})
+
+
+//findByIdAndDelete shreds the entire index card. The user's account, email, password, and history are permanently destroyed. They can no longer log in.findByIdAndUpdate uses an eraser on just one line of the index card (the coverimage field) and leaves the rest of the card perfectly intact.     
+const deleteCoverImg= asynchandler(async(req,res)=>{
+    // 1. Clear the coverimage field in the database for this specific user
+    const user = await User.findByIdAndUpdate(
+        req.user?._id, // Accessible because verifyJWT runs before this
+        {
+            $set: {
+                coverimage: "" // Resets the field to an empty string
+            }
+        },
+        { new: true } // Returns the updated document
+    ).select("-password");
+    res.status(200).json(new ApiResponse(200,user,"Image is deleted successfully!!"))
+})
+
+/*
+Instead of just grabbing basic fields like name and email, this pipeline performs complex real-time operations: it goes into a separate subscriptions collection, counts how many subscribers the user has, counts how many channels they follow, and checks if you (the logged-in user) are currently subscribed to them
+*/
+const getUserChannelProfile = asynchandler(async (req, res)=>{
+  const {username} = req.params   //to extract the username directly from the URL path so the server knows which specific channel profile to look up
+
+  if(!username?.trim()){
+    throw new ApiError(400,"Username is missing")
+  }
+
+  //User.find({username}) no need instead directly aggregate
+
+  const channel = await User.aggregate([
+    {//Stage 1: $match (Finding the Target Channel):
+//What it does: Filters your entire User collection down to the single user document whose username matches the one in the URL.
+//Why it's first: This reduces the pipeline from millions of users down to exactly one user document before running heavy calculations.
+      $match:{
+        username: username?.toLowerCase()
+      }
+    },
+    {// Stage 2: $lookup #1 (Fetching the Channel's Subscribers)
+//What it does: This is a database SQL-like LEFT JOIN. It goes over to the subscriptions collection.
+//How it links: It takes this user's unique _id (localField) and searches the subscriptions collection for rows where the channel field (foreignField) matches that ID.
+//The Output: It bundles all matching subscription records into a brand new array attached to the user called subscribers.
+      $lookup:{
+        from: "subscriptions", //lowercase and plural 
+        localField:"_id",
+        foreignField: "channel" ,
+        as: "subscribers"
+      }
+    },
+    {//Stage 3: $lookup #2 (Fetching who this Channel Subscribed to)
+//What it does: It loops back to the subscriptions collection, but switches the relationship.
+//How it links: It looks for records where this user's _id matches the subscriber field instead. This discovers everyone this creator is personally following.
+//The Output: It saves those records into an array called subscribedTo.
+      $lookup:{
+        from: "subscriptions", //lowercase and plural 
+        localField:"_id",
+        foreignField: "subscriber",
+        as: "subscribedTo"
+      }
+    },
+    {//Stage 4: $addFields (Calculating Metrics on the Fly)
+//$size: Counts how many items are sitting inside the arrays we generated in Stages 2 and 3
+//$cond: An aggregation if-else statement.$in: [req.user?._id, "$subscribers.subscriber"]: It checks your subscribers array. If your logged-in user ID (req.user._id) is found inside that list of subscribers, it sets isSubscribed to true. If not, it sets it to false. This tells your frontend UI whether to display a "Subscribe" or "Unsubscribe" button!
+      $addFields:{
+        subscribersCount:{
+          $size: "$subscribers"
+        },
+        channelsSubscribedToCount:{
+          $size: "$subscriberedTo"
+        },
+        isSubsrcibed: {
+          $cond: {
+            if:{$in: [req.user?._id, "$subscribers.subscriber"]},
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
+    {//Stage 5: $project (Cleaning Up the Output)
+//What it does: Explicitly filters what data is sent to the client. It exposes your new counts and profile info, but completely hides private data like password, refreshToken, or the massive raw arrays we created during the $lookup stages.
+      $project:{
+        fullname: 1,
+        username: 1,
+         subscribersCount:1,
+         channelsSubscribedToCount: 1,
+         isSubscribed: 1,
+         avatar: 1,
+         coverImage: 1,
+         email: 1
+      }
+    }
+  ])
+  if(!channel?.length){
+  throw new ApiError(404, "channel doesnt exists")
+}
+
+console.log(channel)
+
+return res.status(200).json(new ApiResponse(200,channel[0],"User channel fetched successfullly!!"))
+})
+
+
+/*
+
+ [ Raw User Collection ] 
+          │
+          ▼
+ 1. $match   ──► Filters down to 1 user document.
+          │
+          ▼
+ 2. $lookup  ──► Goes to "subscriptions", returns an array of subscribers as [subscribers].
+          │
+          ▼
+ 3. $lookup  ──► Goes to "subscriptions", returns an array of creators as [subscribedTo].
+          │
+          ▼
+ 4. $addFields ─► Calculates lengths of both arrays ($size) and computes if you follow them ($cond).
+          │
+          ▼
+ 5. $project ──► Strips away the heavy raw arrays, leaving just clean metrics & profile info.
+          │
+          ▼
+ [ Final Output Array ] ──► Sent via res.json()
+
+
+*/
+
+//advanced Nested Aggregation Pipeline 
+const getWatchHistory= asynchandler(async (req,res)=>{
+  const user= await User.aggregate([
+    {//Stage 1: $match (Finding the Logged-In User)
+//What it does: Filters the User collection to locate the exact logged-in user document.Why new mongoose.Types.ObjectId() is used: In standard Mongoose queries like findById(), Mongoose automatically converts your string ID into a MongoDB-compatible binary ObjectId. However, inside raw aggregation pipelines, Mongoose does not do this for you. You must manually cast the string req.user._id using this constructor, or the match stage will fail silently and return nothing.
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id)
+      }
+    },
+    {//Stage 2: Outer $lookup (Fetching the Videos from watchHistory)
+//from: "videos": Tells MongoDB to look inside the lowercase, pluralized videos collection.localField: "watchHistory": Targets the array of video ObjectIds stored inside the user's document. MongoDB is smart: if the localField is an array of IDs, it automatically iterates through it and joins every single matching item.foreignField: "_id": Matches those IDs against the unique _id of the videos.as: "watchHistory": Overwrites the original array of raw IDs with an array of fully populated video objects.pipeline: [ ... ]: The Sub-Pipeline. Instead of grabbing the raw video documents as they are, this option lets you run a completely separate aggregation mini-pipeline inside the videos before they are attached to the user.
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory", // An array of video IDs on the User document
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [ // Sub-pipeline
+          {//Stage 3: Nested $lookup (Fetching the Video Creator)
+//What it does: For every video found in Stage 2, this nested lookup jumps over to the users collection to look up the video's creator (owner).The Problem it creates: Lookups always return an array, even if there is only one match. This means your video creator data is now stuck inside a single-item array layout like owner: [ { fullname: "..." } ] instead of a flat object owner: { fullname: "..." }.
+            $lookup: {
+              from : "users",
+              localField: "owner", // The creator's ID on the video document
+              as: "owner",
+              pipeline: [ // Secondary sub-pipeline
+                {
+                 //Stage 4: Inner $project & $addFields (Cleaning up the Creator) 
+//What it does: Limits the creator's profile data to just their public information, stripping out passwords and tokens.
+                  $project: {
+                      fullname: 1,
+                      username: 1,
+                      avatar: 1
+                  }
+                },
+              ]
+            }
+          },
+          {
+//$first: This fixes the array problem mentioned above. It grabs the very first element out of the owner array and flattens it directly into the owner field key, turning it into a normal object.
+            $addFields: {
+              owner:{
+                $first: "$owner"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ])
+
+  return res.status(200).json(new ApiResponse(200, user[0].watchHistory,"Watch history fetched successfully"))
+})
+
+/*
+ [ Start: Raw User Collection ] 
+                │
+                ▼
+ 1. $match      ──► Locates your unique account document via your binary ObjectId.
+                │
+                ▼
+ 2. $lookup (Outer) ◄─┐ 
+    ┌─────────────────┘
+    │ Targets the [watchHistory] array of IDs and enters the "videos" collection.
+    │ For *each* video document found, it spins up a nested sub-pipeline:
+    │
+    ├──► 2a. Nested $lookup ──► Jumps to "users" collection using the video's "owner" ID.
+    │                           Returns creator profile inside a temporary array.
+    │
+    ├──► 2b. Nested $project ─► Strips out the creator's passwords/tokens.
+    │                           Leaves only fullname, username, and avatar.
+    │
+    ├──► 2c. Nested $addFields► Uses $first to smash the creator array into a single 
+    │                           flat object layout: owner: { ... }.
+    │
+    ▼
+ [ Final Output Array ]   ──► Extracts user[0].watchHistory (the fully populated array) 
+                              and sends it straight to res.json().
+
+
+*/
+
+//retuns string
+
 export { 
   registerUser,
   loginUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateAccountDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
+  deleteCoverImg,
+  getUserChannelProfile ,
+  getWatchHistory
 };

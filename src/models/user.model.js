@@ -7,6 +7,32 @@ import mongoose, {Schema} from "mongoose";
 
 //Plugins are reusable tools used to share hooks, middleware, and schema modifications across multiple Mongoose schemas.
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"; // 1. Import the plugin
+
+/*
+mongoose.paginate is a popular Mongoose plugin used to split large sets of database documents into smaller, manageable chunks (pages) instead of loading all data at once.
+
+The plugin provides a clean .paginate() method that handles all the heavy lifting in a single execution block:
+
+const options = {
+  page: 2,   // The page number you want to view
+  limit: 10, // How many items to show per page
+  sort: { createdAt: -1 }, // Sort by newest first (-1)
+  select: "title description thumbnail duration", // Fetch only these specific fields
+  populate: { path: "owner", select: "username avatar" } // Joint-venture fetch user profile details
+   
+};
+
+// Returns both the data AND helpful metadata in one shot
+const result = await Video.paginate({}, options);
+
+Model.paginate(query, options):
+
+query (Object): Your standard Mongoose search filter (e.g., { isPublished: true }). Leave it empty {} if you want to fetch all documents.
+options (Object): Configuration settings that control the pagination, sorting, and data population.
+
+
+When you run .paginate(), it returns an object containing your requested items along with critical pagination metadata that your frontend needs to build pagination controls (like "Next" and "Previous" buttons)
+*/
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -59,7 +85,10 @@ const userSchema = new Schema(
 
 // 2. Inject the plugin functionality directly into your schema rules.
 //A plugin is simply a JavaScript function that takes a Mongoose schema as an argument. Inside that function, you can attach hooks, helper methods, or new fields.
-userSchema.plugin(mongooseAggregatePaginate);
+userSchema.plugin(mongooseAggregatePaginate);     // Apply the plugin to your schema
+
+
+
 /*
 1. mongooseAggregatePaginate: The pre-written recipe (the package code).
 2. userSchema.plugin(...): Injects that recipe right into your User blueprint.

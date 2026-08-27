@@ -1,0 +1,18 @@
+Express cannot read any data from a request body out of the box. It relies entirely on specialized middleware to parse incoming data and populate req.body for you. If you don't use the right middleware for the right data type, req.body remains undefined.
+
+
+Data Type Sent by Client: Required Express Middleware / Setup
+
+1. application/json (JSON / Raw): app.use(express.json())
+
+2. application/x-www-form-urlencoded: app.use(express.urlencoded({extended: true}))
+
+3. multipart/form-data (form-data): Multer (upload.single(), upload.fields(), etc.)
+
+
+Files Change Everything: The moment a client switches the request type to form-data (to send a file), Express's built-in json() parser ignores it completely.
+
+Multer Does Double Duty: When handling form-data, Multer doesn't just process the files (req.file). It is also the specific tool responsible for unpacking the text fields (like email) and injecting them into req.body.
+
+Order of Execution Matters: In your routing chain, your file-handling middleware must be executed before your controller function. If the controller runs first, it looks for req.body before Multer has had the chance to extract and create it.
+

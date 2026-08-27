@@ -19,9 +19,13 @@ import { User } from "../models/user.model.js"; //  Correct relative path
 export const verifyJWT= asynchandler(async(req,_,next)=>{//since res is not used
   //Tokens are send as : Authorization: Bearer <token>
  try {
+   //req.cookies is for reading data that the browser sent to you.
    const token= req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","") //we have access of all cookies since we have app.use(cookie-parser)
 //req.cookies?.accessToken: Checks inside the browser's secure cookie storage (enabled by your cookie-parser middleware).
 //req.header("Authorization"): Checks if the token was sent inside the HTTP request headers (standard for mobile applications or frontend frameworks using Bearer tokens). It strips away the prefix string "Bearer " using .replace() to isolate the raw encrypted token string.
+
+//req.cookies.accessToken will give you the token instantly.
+console.log(req.cookies.accessToken)
 
    if(!token){
      throw new ApiError(401, "Unauthorized request")

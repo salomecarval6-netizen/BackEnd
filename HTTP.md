@@ -107,16 +107,38 @@ HEAD: No message body (response headers body)
 OPTIONS: what operations are avaible
 
 TRACE: loopback test(get same data)
-DELETE: remove a resource
-
-PUT: replace a resource
-
-POST: interact with resource(mostly add) \*\*
-PATCH: change part of sequnce
 
 
 
+POST {Createcreate(), save()}
+[interact with resource(mostly add)]: Used to create a brand-new resource (e.g., registering a new user, creating a new post).
 
+PUT {Update (Full)replaceOne()}
+[ replace a resource ]: Used to replace an existing resource entirely. You must send the complete updated object. If you leave fields out, they might be deleted or set to null.
+
+PATCH : {Update (Partial)updateOne(), $set}
+[change part of sequnce] : Used to modify or update only specific pieces of an existing resource (e.g., updating just the password, or just an email address), leaving the rest of the user data completely untouched.
+
+GET : {Readfind(), findById()}
+
+(Read): Used exclusively to retrieve data from the server. It should never change or modify any data on the database.
+How data is passed: Through the URL path (e.g., /users/123) or query parameters (e.g., /search?name=john).
+It cannot have a request body.
+
+DELETE (Delete): {DeletefindByIdAndDelete()}:
+: Used to remove a specific resource from the server completely.
+How data is passed: Usually via URL parameters pointing to the specific ID of the item to be deleted.
+
+OPTIONS (Pre-flight):
+This is an automatic background method used primarily by web browsers for CORS (Cross-Origin Resource Sharing) security.
+How it works: Before a frontend website makes a sensitive request (like a POST, PUT, or PATCH) to a different backend server domain, the browser automatically sends an OPTIONS request first. 
+It asks the server: "Are you allowed to receive data from my domain, and what methods do you accept?"
+Example: You rarely have to write routes for this manually; middleware like the Express cors() package handles it 
+for you.
+
+HEAD:
+Identical to a GET request, but the server responds without the body—it only sends back the HTTP headers.
+Use Case: Used to check if a large file exists or to see its file size (Content-Length) before wasting internet bandwidth downloading the actual file.
 
 HTTP STATUS CODE:
 

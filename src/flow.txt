@@ -144,3 +144,58 @@ VVVVVVVVVVV. IMP:
 4. If any line inside your registerUser controller crashes or throws an error (like throw new ApiError), the underlying promise immediately flips to Rejected.This instantly forces the execution to skip the rest of the controller code and jump straight into the .catch((err) => next(err)) block inside your asyncHandler.
 
 5. When next(err) runs inside your asyncHandler, the control goes straight to your Global Error-Handling Middleware located at the bottom of your app.js file.Express instantly halts the regular route chain and searches your code for a middleware function with exactly four parameters: (err, req, res, next).
+
+
+
+FLOW:
+
+1. ENVIRONMENT VARIABLE PRODUCTION
+
+2. ADD PACKAGES INSIDE package.json-> dependecies
+
+3. database connection
+
+4. index.js -> set express
+
+5. models
+
+6. hooks pre userModel
+
+7. tokens
+
+8. controllers
+
+9. aggreagation pipeline
+
+
+
+REGISTER
+   ↓
+User created in MongoDB
+   ↓
+No access token necessarily
+    ↓
+The registered user send as response
+
+
+LOGIN
+   ↓
+Email + password verified
+   ↓
+Access token & refresh token(used to get new access token) generated
+   ↓
+res.cookie("accessToken", accessToken, ...)
+   ↓
+Browser/Postman stores cookie
+
+
+
+LOGOUT
+   ↓
+Browser sends accessToken cookie
+   ↓
+req.cookies.accessToken
+   ↓
+JWT verified
+   ↓
+Logout

@@ -74,8 +74,7 @@ app.use(express.static("public"));
 //E.  Cookie Parser: Translates secret browser cookies into readable JavaScript objects[THIRD-PARTY MIDDLEWARE]
 app.use(cookieParser());  // Allows your application to read and parse cookies from browser requests
 //Parses the cookie header strings attached to incoming requests and populates req.cookies with a clean object, allowing you to read secure login tokens easily.
-
-
+// This middleware populates the req.cookies object
 
 
 //2. MOUNT APPLICATION ROUTES Route-Specific application: only guards /
